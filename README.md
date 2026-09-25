@@ -35,11 +35,12 @@ scenes, with determinism re-renders) takes about 3 minutes on 4 cores;
 
 ```
 paint/
+  playground.py  freestyle scene composer (prompt / surprise)
   scene/     spec.py (YAML/JSON scene format), shapes.py (26 object kinds as signed distance fields)
   core/      rng (seeded, label-scoped), guard (timeout + memory cap), geom, sdf, masks (analytic AA +
              supersampling), noise, texture (paper, canvas, emboss), halftone (dots, line screens),
              flow (flow-field builder + vectorised streamlines), brush (bristle stroke engine), color, io
-  styles/    screenprint.py, sumie.py, impasto.py  (each: render(scene, seed) -> PNG bytes)
+  styles/    screenprint, sumie, impasto, pointillism, woodblock, linocut, stainedglass (each: render(scene, seed) -> PNG bytes)
   loop/      agent.py (render -> look -> critique -> revise, max 4, every version kept), critics.py
   evals/     technical.py, judges.py, fidelity.py, pairwise.py (+Elo), calibration.py, suite.py, report.py
   site/      server.py + static/index.html (local web studio)
@@ -76,8 +77,12 @@ the treatment.
 | style | how it works |
 |---|---|
 | `screenprint` | Each ink is a plate (a coverage map). Shapes knock out or overprint (multiply); tone comes only from halftone dots and line screens; each plate gets misregistration, ink starvation and density drift. A figure/ground rule stops an object being printed in the ink behind it. Checks: at most 5 inks and a bounded colour-cluster count. |
-| `sumie` | Built against the style guide by a parallel agent. See the module docstring. |
-| `impasto` | Built against the style guide by a parallel agent. See the module docstring. |
+| `sumie` | One ink-density field on warm paper. Bristle strokes that run dry, washes with pooled edges, far things paler and wetter, lots of empty paper, and a single red accent (sun or abstract seal). |
+| `impasto` | Everything is a short directional stroke that follows a flow field: vortex skies, contour-following strokes on objects, warm/cool complementary colour, broken Prussian-blue contours, and embossed paint relief. Batched stroke stamping (`core/paintbody.py`). |
+| `pointillism` | A hidden flat colour study, then tens of thousands of dots of unmixed pigment that mix optically. Complementary dots in shadows, irradiation halos at edges, and the primed canvas showing through. |
+| `woodblock` | A carved key block with swelling lines, flat colour blocks (6 max) cut far to near, bokashi skies and water, scalloped wave rows, straight rain lines, wood grain and baren texture, and a keyline border. |
+| `linocut` | A fully inked block with all tone carved away as tapered V-gouge cuts, calibrated so the carved area equals the tone. Cuts follow each form. One ink, or an optional second colour; ragged hand-cut plate edge. |
+| `stainedglass` | Every pixel belongs to a glass piece, with lead drawn wherever pieces meet. Cuts follow forms (sunbursts, wavy water, converging furrows); jewel glass with streaks, seeds and glow; a border, stone surround and saddle bars. |
 
 `paint render ... -p knob=value` overrides any knob. `DEFAULTS` and `KNOBS` in
 each module list them with ranges.
