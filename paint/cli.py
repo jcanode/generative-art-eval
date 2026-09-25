@@ -9,6 +9,8 @@
     paint calibrate --ratings evals/calibration/ratings.json
     paint play "a lighthouse at night with gulls" --styles screenprint,woodblock
     paint play --surprise --setting coast
+    paint arena --models claude-opus-5,claude-sonnet-5 --tasks bamboo-sumie --iterations 4
+    paint sandbox my_program.py --size 800x600
     paint serve --port 8000
 """
 from __future__ import annotations
@@ -147,6 +149,37 @@ def cmd_play(a):
     return 0
 
 
+def cmd_arena(a):
+    from .arena.arena import run_arena
+
+    size = [int(x) for x in a.size.lower().split("x")] if a.size else (None, None)
+    path = run_arena(models=a.models.split(",") if a.models else None, tasks=a.tasks.split(",") if a.tasks else None,
+                     iterations=a.iterations, judge=a.judge, judge_model=a.judge_model, label=a.label,
+                     include_house=not a.no_house, backend=a.sandbox, width=size[0], height=size[1],
+                     pairwise=not a.no_pairwise, max_cost_per_session=a.max_cost, effort=a.effort)
+    print(f"report: {path}")
+    return 0
+
+
+def cmd_sandbox(a):
+    from .arena.sandbox import build_docker_image, run_program
+    from .core.io import save_png
+
+    if a.build:
+        print(build_docker_image())
+        return 0
+    if not a.program:
+        raise SystemExit("give a program file, or --build")
+    w, h = (int(x) for x in a.size.lower().split("x"))
+    r = run_program(Path(a.program).read_text(), w, h, a.seed, timeout=a.timeout, backend=a.sandbox)
+    if not r.ok:
+        print(r.feedback())
+        return 1
+    out = save_png(r.image / 255.0, a.out)
+    print(f"{out}  ({r.seconds:.1f}s, backend {r.backend}, isolation {r.isolation})")
+    return 0
+
+
 def cmd_serve(a):
     from .site.server import serve
 
@@ -237,6 +270,32 @@ def main(argv=None):
     pl.add_argument("--out", default="out/play")
     pl.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_S)
     pl.set_defaults(fn=cmd_play)
+
+    ar = sub.add_parser("arena", help="models write whole paint programs; run sandboxed; judge blind; Elo")
+    ar.add_argument("--models", default=None, help="comma list: claude-* model ids, baseline:naive, program:<file.py> "
+                    "(default: claude-opus-5,claude-sonnet-5,claude-haiku-4-5 with a key, else baseline:naive)")
+    ar.add_argument("--tasks", default=None, help="comma list of task ids from evals/arena/tasks.yaml (default: all)")
+    ar.add_argument("--iterations", type=int, default=4, help="versions per model per task (max 4)")
+    ar.add_argument("--size", default=None, help="override canvas, e.g. 768x576 (cheaper and faster)")
+    ar.add_argument("--judge", default="auto", choices=["auto", "claude", "mock", "none"])
+    ar.add_argument("--judge-model", default=None)
+    ar.add_argument("--effort", default=None, choices=["low", "medium", "high", "xhigh", "max"], help="contestant effort level")
+    ar.add_argument("--sandbox", default=None, choices=["process", "docker"])
+    ar.add_argument("--max-cost", type=float, default=None, help="stop a model's session once it has cost this many USD")
+    ar.add_argument("--label", default=None)
+    ar.add_argument("--no-house", action="store_true", help="don't include the studio's own styles as a player")
+    ar.add_argument("--no-pairwise", action="store_true")
+    ar.set_defaults(fn=cmd_arena)
+
+    sb = sub.add_parser("sandbox", help="run a paint(width, height, seed) program in the sandbox")
+    sb.add_argument("program", nargs="?")
+    sb.add_argument("--size", default="1024x768")
+    sb.add_argument("--seed", type=int, default=0)
+    sb.add_argument("--timeout", type=float, default=90)
+    sb.add_argument("--sandbox", default=None, choices=["process", "docker"])
+    sb.add_argument("--out", default="out/sandbox.png")
+    sb.add_argument("--build", action="store_true", help="build the docker sandbox image")
+    sb.set_defaults(fn=cmd_sandbox)
 
     sv = sub.add_parser("serve", help="local web studio")
     sv.add_argument("--host", default="127.0.0.1")

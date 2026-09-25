@@ -537,14 +537,78 @@ def api_play_save(body):
     return {"path": str(path.relative_to(ROOT))}
 
 
+# ---------------------------------------------------------------------------
+# Model arena
+# ---------------------------------------------------------------------------
+
+def api_arena_meta(_):
+    import shutil
+
+    from ..arena.brief import load_tasks
+    from ..arena.providers import DEFAULT_LINEUP, MODELS
+
+    docker_ok = False
+    if shutil.which("docker"):
+        import subprocess
+
+        try:
+            docker_ok = subprocess.run(["docker", "image", "inspect", "paint-arena-sandbox:latest"], capture_output=True,
+                                       timeout=10).returncode == 0
+        except Exception:  # noqa: BLE001
+            docker_ok = False
+    return {"tasks": load_tasks(), "models": [{"id": k, "price": v["price"]} for k, v in MODELS.items()],
+            "default": DEFAULT_LINEUP, "docker": docker_ok}
+
+
+def api_arena_start(body):
+    from ..arena.arena import run_arena
+
+    models = [m for m in (body.get("models") or []) if m]
+    if any(m.startswith("claude-") for m in models) and not KEYS.get():
+        raise ValueError("Claude contestants need an API key (Settings)")
+    if any(m.startswith("program:") for m in models):
+        raise ValueError("program: contestants are CLI-only")
+    size = body.get("size") or ""
+    w, h = (int(x) for x in size.split("x")) if "x" in size else (None, None)
+    judge = body.get("judge") or ("claude" if KEYS.get() else "mock")
+
+    def job(progress):
+        path = run_arena(models=models or None, tasks=body.get("tasks") or None, iterations=int(body.get("iterations", 4)),
+                         judge=judge, judge_model=SETTINGS["model"], api_key=KEYS.get(), label=body.get("label") or None,
+                         include_house=body.get("house", True), backend=body.get("sandbox") or None, width=w, height=h,
+                         max_cost_per_session=float(body["max_cost"]) if body.get("max_cost") else None,
+                         effort=body.get("effort") or None, progress=progress)
+        return {"report": _url_for(path)}
+
+    return {"job": JOBS.start("arena", job)}
+
+
+def api_arena_runs(_):
+    root = RUNS / "arena"
+    runs = []
+    for p in sorted(root.glob("*/results.json"), reverse=True)[:30] if root.exists() else []:
+        try:
+            r = json.loads(p.read_text())
+        except json.JSONDecodeError:
+            continue
+        runs.append({"run_id": r["run_id"], "label": r["label"], "models": r["models"], "judge": r["judge"],
+                     "tasks": [t["id"] for t in r["tasks"]], "leaderboard": r["leaderboard"],
+                     "report": _url_for(p.parent / "report.html")})
+    elo = json.loads((root / "elo.json").read_text()) if (root / "elo.json").exists() else {}
+    return {"runs": runs, "elo": sorted(({"player": k, "elo": round(v, 1)} for k, v in elo.get("ratings", {}).items()),
+                                        key=lambda r: -r["elo"])}
+
+
 GET_ROUTES = {"/api/state": api_state, "/api/runs": api_runs, "/api/calibration": api_calibration,
-              "/api/uploads": api_uploads, "/api/loops": api_loops, "/api/play/meta": api_play_meta}
+              "/api/uploads": api_uploads, "/api/loops": api_loops, "/api/play/meta": api_play_meta,
+              "/api/arena/meta": api_arena_meta, "/api/arena/runs": api_arena_runs}
 POST_ROUTES = {"/api/key": api_key, "/api/key/test": api_key_test, "/api/render": api_render,
                "/api/judge": api_judge, "/api/compare": api_compare, "/api/upload": api_upload,
                "/api/loop": api_loop_start, "/api/loop/critique": api_loop_critique, "/api/eval": api_eval,
                "/api/calibration/rate": api_calibration_rate, "/api/calibration/init": api_calibration_init,
                "/api/calibration/run": api_calibration_run, "/api/play/surprise": api_play_surprise,
-               "/api/play/prompt": api_play_prompt, "/api/play/render": api_play_render, "/api/play/save": api_play_save}
+               "/api/play/prompt": api_play_prompt, "/api/play/render": api_play_render, "/api/play/save": api_play_save,
+               "/api/arena": api_arena_start}
 
 
 class Handler(BaseHTTPRequestHandler):

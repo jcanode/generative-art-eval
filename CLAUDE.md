@@ -32,4 +32,6 @@ Then write the critique before changing anything.
 - Budget: a 1024 px render should take under 60 s and 2 GB. The guard kills at 300 s / 4 GiB.
 - Don't copy specific artworks, characters or logos. Painting "in the manner of" a
   pre-1929 technique is fine.
+- Model-written programs (arena) only ever run through `paint.arena.sandbox.run_program`, never
+  imported or exec'd in the studio process.
 - Tests: `python3 -m pytest -q tests`.

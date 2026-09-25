@@ -43,7 +43,8 @@ paint/
   styles/    screenprint, sumie, impasto, pointillism, woodblock, linocut, stainedglass (each: render(scene, seed) -> PNG bytes)
   loop/      agent.py (render -> look -> critique -> revise, max 4, every version kept), critics.py
   evals/     technical.py, judges.py, fidelity.py, pairwise.py (+Elo), calibration.py, suite.py, report.py
-  site/      server.py + static/index.html (local web studio)
+  arena/     model arena: policy.py + sandbox.py + runner.py (sandbox), providers.py, session.py, arena.py, report.py
+  site/      server.py + static/ (local web studio)
 evals/
   suite/     10 fixed regression scenes      holdout/  3 scenes the generator never iterates on
   rubrics/   <style>.md (edit these)          calibration/  your ratings (ratings.json)
@@ -111,6 +112,67 @@ lighthouses a cliff, and keeps indoor and outdoor scenes separate. The same thin
 paint play "two sailboats at sunset with gulls" --styles screenprint,woodblock,impasto
 paint play --surprise --setting night
 ```
+
+## Model arena: how good are different models at painting with code?
+
+`paint arena` (or the **Model arena** tab) gives every contestant model the same brief (a scene, a
+tradition, and a contract) and asks it to write the **whole painting program**: a `paint(width, height, seed)`
+function using only numpy, scipy and Pillow. So it measures a model's ability to *make* art in code, not to
+write prompts for our renderer.
+
+```
+paint arena --models claude-opus-5,claude-sonnet-5,claude-haiku-4-5 --iterations 4
+paint arena --models claude-opus-5,program:examples/arena/ink_bamboo.py --tasks bamboo-sumie --size 768x576
+paint sandbox my_program.py --size 800x600           # run any paint() program in the sandbox
+```
+
+For each task and model, the same loop as the studio runs, with the model as the whole studio:
+
+1. The model writes a program.
+2. It runs in the sandbox.
+3. The model is shown its own render (as an image) plus technical checks, critiques it under the usual
+   headings, gives itself a score, and sends a complete revised program. Crashes and policy violations
+   go back as tracebacks.
+4. At most 4 versions. All are kept (`program.py`, `reply.md`, `image.png` or `error.txt`).
+
+The last version that rendered is judged blind exactly like the studio's own styles: technical checks,
+subject fidelity, the style rubric, and position-swapped pairwise comparisons between all contestants on
+the same task, which feed a persistent Elo table (`runs/arena/elo.json`). The leaderboard also reports:
+
+- render success and first-try success
+- attempts needed to get a working program
+- determinism (same seed re-run)
+- **style (first) vs style (final)**: how much each model's self-critique actually improved its work
+- tokens and cost
+
+The studio's hand-built styles enter as the **house** player, and `baseline:naive` is an offline floor.
+Tasks live in `evals/arena/tasks.yaml`; add tasks rather than editing them, so leaderboards stay
+comparable. `program:<file.py>` enters a hand-written program as a contestant.
+
+**Sandbox.** Model-written code runs in layers:
+
+- **Static policy** (`paint/arena/policy.py`): allow-listed imports only; no file, network, process or
+  introspection names (`open`, `.save`, `getattr`, dunders, ...).
+- **A fresh interpreter** (`python -I`, not a fork of the studio) with an *empty environment* (your API
+  key is never visible to it), in an empty temp directory.
+- **Inside it**: restricted builtins, an import hook that only returns pre-imported allowed modules, and
+  OS limits applied before the program runs. Those are an address-space cap, a CPU-time cap, zero-byte
+  file writes, no new processes and, on Linux, an empty network namespace.
+- **A wall-clock timeout** that kills the whole process group.
+- **For a hard boundary**, `--sandbox docker` (or `PAINT_SANDBOX=docker`) runs the same thing in a
+  container with `--network none`, a read-only root, all capabilities dropped, and memory/CPU/PID
+  limits. Build the image once with `paint sandbox --build`.
+
+Tested against escape attempts, infinite loops, a 32 GiB allocation and environment leaks
+(`tests/test_arena_sandbox.py`). The process sandbox is solid defence in depth; use Docker if you run
+code from models or people you don't trust at all. On macOS/Windows the OS limits are weaker (see
+"Running locally").
+
+Contestants today are Claude models via the Anthropic API, using streaming, adaptive thinking where
+supported, and prompt caching on the growing conversation. Another vendor is one small class with
+`start()` and `revise()` in `paint/arena/providers.py`. **Cost:** a full run (3 models × 7 tasks × 4
+versions) is roughly $10–20 at default settings. The UI shows an estimate first. `--size 768x576`,
+fewer tasks or `--max-cost` keep it cheap.
 
 ## The loop
 

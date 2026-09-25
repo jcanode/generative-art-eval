@@ -67,6 +67,7 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{text-align:right;fon
   <nav role="tablist">
     <button role="tab" data-tab="playground">Playground</button>
     <button role="tab" data-tab="studio" aria-selected="true">Render</button>
+    <button role="tab" data-tab="arena">Model arena</button>
     <button role="tab" data-tab="loop">Loop</button>
     <button role="tab" data-tab="evals">Evals</button>
     <button role="tab" data-tab="judge">Judge images</button>
@@ -116,6 +117,32 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{text-align:right;fon
       <p class="hint" id="p-status"></p>
       <div id="p-results" class="results"></div>
     </div>
+  </div>
+</section>
+
+<section id="arena">
+  <div class="cols">
+    <div class="panel">
+      <h2>Model arena</h2>
+      <p class="hint">Each model writes a complete numpy/scipy/Pillow paint program for every task. The program runs in a sandbox (no files, network or processes; memory and CPU caps). The model sees its own render, critiques it and revises it, up to 4 versions. Final images are judged blind and compared pairwise for an Elo leaderboard. The studio's own styles take part as <b>house</b>.</p>
+      <h3>Contestants</h3><div id="a-models"></div>
+      <div class="row" style="margin-top:6px"><input id="a-custom" type="text" placeholder="another claude-* model id" style="flex:1 1 auto;min-width:0"></div>
+      <label class="hint"><input type="checkbox" id="a-naive"> include offline naive baseline</label>
+      <label class="hint"><input type="checkbox" id="a-house" checked> include house styles</label>
+      <h3>Tasks</h3><div id="a-tasks"></div>
+      <div class="row2"><div><label for="a-iters">Versions per task</label><input id="a-iters" type="number" min="1" max="4" value="4"></div>
+        <div><label for="a-size">Canvas</label><select id="a-size"><option value="">task default (≈1024)</option><option value="768x576">768×576 (cheaper)</option><option value="512x384">512×384 (quick)</option></select></div></div>
+      <div class="row2"><div><label for="a-effort">Effort</label><select id="a-effort"><option value="">model default</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select></div>
+        <div><label for="a-cap">Cost cap per session ($)</label><input id="a-cap" type="number" step="0.5" min="0" placeholder="none"></div></div>
+      <div class="row2"><div><label for="a-sandbox">Sandbox</label><select id="a-sandbox"><option value="">process (default)</option><option value="docker">docker</option></select></div>
+        <div><label for="a-judge">Judge</label><select id="a-judge"><option value="">auto</option><option value="claude">Claude</option><option value="mock">mock</option></select></div></div>
+      <label for="a-label">Run label</label><input id="a-label" type="text" placeholder="e.g. opus-vs-sonnet">
+      <p class="hint" id="a-estimate"></p>
+      <div class="row"><button class="btn" id="a-go">Start arena</button></div>
+      <pre class="log" id="a-log" hidden></pre>
+    </div>
+    <div class="panel"><h2>Leaderboard (all arena runs)</h2><div id="a-elo" class="empty">No arena runs yet.</div>
+      <h3>Runs</h3><div id="a-runs" class="empty">No arena runs yet.</div></div>
   </div>
 </section>
 
@@ -248,6 +275,7 @@ function showTab(t) {
   document.querySelectorAll('main section').forEach(s => s.classList.toggle('active', s.id === t));
   try { localStorage.setItem('tab', t); } catch (e) {}
   if (t === 'playground' && window.playInit) window.playInit();
+  if (t === 'arena' && window.arenaInit) window.arenaInit();
   if (t === 'evals') loadRuns(); if (t === 'loop') loadLoops(); if (t === 'calibration') loadCal(); if (t === 'judge') loadGallery();
 }
 $('#keypill').onclick = () => showTab('settings');
@@ -455,5 +483,6 @@ $('#s-test').onclick = async () => { $('#s-status').textContent = 'testing…'; 
 init().catch(e => { document.querySelector('main').innerHTML = `<p class="bad">Could not reach the studio server: ${esc(e.message)}</p>`; });
 </script>
 <script src="/static/playground.js"></script>
+<script src="/static/arena.js"></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+# Arena tasks: every contestant model gets the same brief for each task.
+# A task names a scene (what to draw) and a style tradition (how). `prompt` tasks give only words.
+# Keep this set stable so leaderboards are comparable over time; add new tasks rather than editing old ones.
+tasks:
+  - {id: harbour-screenprint, title: "Harbour at dusk as a mid-century screenprint", scene: evals/suite/01_harbour_dusk.yaml, style: screenprint}
+  - {id: bamboo-sumie, title: "Bamboo and bird in sumi-e ink", scene: evals/suite/05_bamboo_bird.yaml, style: sumie}
+  - {id: moonrise-impasto, title: "Moonrise over the pine ridge as impasto oil", scene: evals/suite/04_night_sky.yaml, style: impasto}
+  - {id: stilllife-pointillism, title: "Still life with vase and fruit in pointillism", scene: evals/suite/03_still_life.yaml, style: pointillism}
+  - {id: lighthouse-woodblock, title: "Lighthouse on the cliff as a woodblock print", scene: evals/suite/06_lighthouse.yaml, style: woodblock}
+  - {id: tree-linocut, title: "Lone tree in a field as a linocut", scene: evals/suite/07_lone_tree.yaml, style: linocut}
+  - {id: sailboats-stainedglass, title: "Two sailboats and gulls as a stained glass window", scene: evals/suite/08_sailboats_gulls.yaml, style: stainedglass}

@@ -84,7 +84,10 @@ def style_rule_checks(style: str, img: np.ndarray, info: dict) -> list[dict]:
                               f"{n} inks used (max {limit})", n))
         elif rule in ("max_color_clusters", "max_color_clusters_per_ink"):
             if rule.endswith("per_ink"):
-                limit = limit * max(1, int(info.get("ink_count") or 1))
+                if not info.get("ink_count"):
+                    out.append(_check("style:flat_color", True, "ink count unknown for this image (skipped)", skipped=True))
+                    continue
+                limit = limit * int(info["ink_count"])
             n = metrics.color_clusters(img, bits=3, min_frac=0.01)
             out.append(_check("style:flat_color", n <= limit,
                               f"{n} colour clusters >=1% area at 3 bits/channel (max {limit}); continuous-tone images score far higher", n))
