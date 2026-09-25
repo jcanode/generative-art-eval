@@ -1,0 +1,12 @@
+title: Windmill under clouds
+canvas: {width: 1024, height: 768}
+seed: 101
+light: {azimuth: 220, elevation: 40, warmth: 0.6}
+palette: {hints: ["#f1dca7", "#d1603d", "#4d7c8a", "#2b2d42"], mood: warm}
+horizon: 0.68
+objects:
+  - {kind: cloud, x: 0.25, y: 0.22, size: 0.13}
+  - {kind: cloud, x: 0.8, y: 0.3, size: 0.1}
+  - {kind: field, y: 0.68}
+  - {kind: windmill, x: 0.55, y: 0.84, size: 0.62}
+  - {kind: tree, x: 0.18, y: 0.82, size: 0.25}

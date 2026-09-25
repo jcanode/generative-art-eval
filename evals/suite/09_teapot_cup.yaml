@@ -1,0 +1,10 @@
+title: Teapot and cup
+canvas: {width: 1000, height: 800}
+seed: 9
+light: {azimuth: 215, elevation: 45, warmth: 0.6}
+palette: {hints: ["#f3e1bd", "#2a9d8f", "#e76f51", "#264653"], mood: neutral}
+horizon: 0.6
+objects:
+  - {kind: table, y: 0.6}
+  - {kind: teapot, x: 0.38, y: 0.8, size: 0.52}
+  - {kind: cup, x: 0.74, y: 0.84, size: 0.3}

@@ -1,0 +1,12 @@
+title: Lighthouse on the cliff
+canvas: {width: 800, height: 1000}
+seed: 23
+light: {azimuth: 190, elevation: 25, warmth: 0.6}
+palette: {hints: ["#f4e3b5", "#e1552f", "#2e6f95", "#6f6a64", "#1b2238"], mood: cool}
+horizon: 0.68
+objects:
+  - {kind: cloud, x: 0.3, y: 0.22, size: 0.14}
+  - {kind: sea}
+  - {kind: cliff, x: 0.58, y: 0.62, size: 0.4}
+  - {kind: lighthouse, x: 0.72, y: 0.63, size: 0.5, beam: false}
+  - {kind: bird, x: 0.3, y: 0.4, size: 0.06, count: 2}

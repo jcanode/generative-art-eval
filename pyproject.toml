@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paint"
+version = "0.1.0"
+description = "Procedural code-painting harness (screenprint, sumi-e, impasto) with an eval suite"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pillow", "scipy", "pyyaml"]
+
+[project.optional-dependencies]
+judge = ["anthropic"]
+
+[project.scripts]
+paint = "paint.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["paint*"]
+
+[tool.setuptools.package-data]
+"paint.site" = ["static/*"]

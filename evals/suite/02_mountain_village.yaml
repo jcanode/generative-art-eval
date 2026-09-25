@@ -1,0 +1,15 @@
+title: Mountain village
+canvas: {width: 1024, height: 768}
+seed: 11
+light: {azimuth: 300, elevation: 45, warmth: 0.4}
+palette: {hints: ["#f4e3b5", "#d1495b", "#3c7a4a", "#2e5c8a", "#1b2238"], mood: cool}
+horizon: 0.7
+objects:
+  - {kind: mountain, x: 0.55, y: 0.46, size: 0.48, count: 3}
+  - {kind: field, y: 0.7}
+  - {kind: house, x: 0.3, y: 0.86, size: 0.2}
+  - {kind: house, x: 0.47, y: 0.8, size: 0.15}
+  - {kind: house, x: 0.62, y: 0.9, size: 0.22}
+  - {kind: pine, x: 0.14, y: 0.92, size: 0.34}
+  - {kind: pine, x: 0.82, y: 0.88, size: 0.28}
+  - {kind: pine, x: 0.9, y: 0.95, size: 0.36}

@@ -1,0 +1,12 @@
+title: Moonlit lake with a rowboat
+canvas: {width: 1024, height: 768}
+seed: 103
+light: {azimuth: 300, elevation: 30, warmth: 0.2}
+palette: {hints: ["#e8e3c1", "#5c7aa6", "#233554", "#0d1321"], mood: night}
+horizon: 0.55
+objects:
+  - {kind: moon, x: 0.3, y: 0.22, size: 0.12, variant: full}
+  - {kind: mountain, x: 0.65, y: 0.42, size: 0.26, count: 2}
+  - {kind: sea}
+  - {kind: pine, x: 0.9, y: 0.7, size: 0.3}
+  - {kind: boat, x: 0.45, y: 0.75, size: 0.22, variant: row}

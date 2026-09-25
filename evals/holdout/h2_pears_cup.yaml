@@ -1,0 +1,10 @@
+title: Pears beside a cup
+canvas: {width: 900, height: 900}
+seed: 102
+light: {azimuth: 330, elevation: 45, warmth: 0.5}
+palette: {hints: ["#efe6d0", "#9bc53d", "#c3423f", "#211a1e"], mood: neutral}
+horizon: 0.58
+objects:
+  - {kind: table, y: 0.58}
+  - {kind: fruit, x: 0.34, y: 0.82, size: 0.2, count: 2, variant: pear}
+  - {kind: cup, x: 0.7, y: 0.82, size: 0.3}

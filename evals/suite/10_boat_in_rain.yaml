@@ -1,0 +1,13 @@
+title: Fishing boat in the rain
+canvas: {width: 1024, height: 768}
+seed: 13
+light: {azimuth: 270, elevation: 60, warmth: 0.2}
+palette: {hints: ["#d9dcd6", "#81a4cd", "#3e7cb1", "#1c2541"], mood: cool}
+horizon: 0.5
+objects:
+  - {kind: hills, y: 0.5, size: 0.08}
+  - {kind: river, x: 0.5, size: 0.6}
+  - {kind: field, y: 0.5}
+  - {kind: reeds, x: 0.12, y: 0.95, size: 0.3, count: 12}
+  - {kind: boat, x: 0.52, y: 0.72, size: 0.3, variant: fishing}
+  - {kind: rain, size: 0.3, count: 90}

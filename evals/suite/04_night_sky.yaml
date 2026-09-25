@@ -1,0 +1,18 @@
+title: Moonrise over the pine ridge
+canvas: {width: 1024, height: 768}
+seed: 19
+light: {azimuth: 200, elevation: 30, warmth: 0.3}
+palette: {hints: ["#f2d16b", "#3d5a80", "#98c1d9", "#141b2d"], mood: night}
+horizon: 0.64
+notes: >
+  Night sky for vortex-sky testing. Deliberately NOT the cypress/crescent/village
+  arrangement of a famous 1889 painting: full moon low on the left, a pine ridge,
+  a lake instead of a village.
+objects:
+  - {kind: stars, size: 0.5, count: 12}
+  - {kind: moon, x: 0.2, y: 0.36, size: 0.16, variant: full}
+  - {kind: hills, y: 0.66, size: 0.1, count: 2}
+  - {kind: sea, y: 0.7}
+  - {kind: pine, x: 0.7, y: 0.74, size: 0.3}
+  - {kind: pine, x: 0.8, y: 0.72, size: 0.24}
+  - {kind: boat, x: 0.4, y: 0.84, size: 0.16, variant: row}

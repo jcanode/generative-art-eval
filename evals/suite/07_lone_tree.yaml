@@ -1,0 +1,10 @@
+title: Lone tree in a field
+canvas: {width: 1024, height: 768}
+seed: 31
+light: {azimuth: 330, elevation: 50, warmth: 0.8}
+palette: {hints: ["#f6d78b", "#e07a3f", "#5b8c3a", "#2a3d2a"], mood: warm}
+horizon: 0.66
+objects:
+  - {kind: sun, x: 0.78, y: 0.28, size: 0.14}
+  - {kind: field, y: 0.66}
+  - {kind: tree, x: 0.38, y: 0.72, size: 0.55}

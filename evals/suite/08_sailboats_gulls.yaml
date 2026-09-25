@@ -1,0 +1,13 @@
+title: Two sailboats and gulls
+canvas: {width: 1024, height: 768}
+seed: 41
+light: {azimuth: 160, elevation: 35, warmth: 0.5}
+palette: {hints: ["#dff0f0", "#f25c54", "#247ba0", "#0b3954"], mood: cool}
+horizon: 0.55
+objects:
+  - {kind: cloud, x: 0.22, y: 0.2, size: 0.12}
+  - {kind: cloud, x: 0.75, y: 0.14, size: 0.09}
+  - {kind: sea}
+  - {kind: boat, x: 0.3, y: 0.78, size: 0.36}
+  - {kind: boat, x: 0.7, y: 0.64, size: 0.2, facing: left}
+  - {kind: bird, x: 0.55, y: 0.3, size: 0.07, count: 3}

@@ -1,0 +1,9 @@
+title: Bamboo and bird
+canvas: {width: 768, height: 1024}
+seed: 5
+light: {azimuth: 200, elevation: 40, warmth: 0.5}
+palette: {hints: ["#e6dcc2", "#6b8f71", "#2d3a2e", "#b23a2e"], mood: neutral}
+horizon: 0.95
+objects:
+  - {kind: bamboo, x: 0.35, y: 1.0, size: 0.95, count: 3}
+  - {kind: bird, x: 0.68, y: 0.42, size: 0.2, variant: perched}

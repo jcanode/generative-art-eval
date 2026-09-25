@@ -1,0 +1,14 @@
+title: Harbour at dusk
+canvas: {width: 1024, height: 768}
+seed: 7
+light: {azimuth: 200, elevation: 20, warmth: 0.9}
+palette:
+  hints: ["#f2c14e", "#e8643c", "#2a8c88", "#1d2d4a"]
+  mood: warm
+horizon: 0.6
+objects:
+  - {kind: sun, x: 0.68, y: 0.42, size: 0.22}
+  - {kind: hills, y: 0.6, size: 0.1, count: 2}
+  - {kind: sea}
+  - {kind: boat, x: 0.32, y: 0.76, size: 0.34}
+  - {kind: bird, x: 0.3, y: 0.2, size: 0.08, count: 3}

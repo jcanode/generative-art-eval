@@ -1,0 +1,10 @@
+title: Still life with vase and fruit
+canvas: {width: 900, height: 900}
+seed: 3
+light: {azimuth: 210, elevation: 40, warmth: 0.7}
+palette: {hints: ["#f0d6a4", "#c8553d", "#2f6690", "#3a2e39"], mood: warm}
+horizon: 0.62
+objects:
+  - {kind: table, y: 0.62}
+  - {kind: vase, x: 0.4, y: 0.8, size: 0.5}
+  - {kind: fruit, x: 0.68, y: 0.84, size: 0.13, count: 3, variant: apple}
