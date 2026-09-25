@@ -7,6 +7,8 @@
     paint eval --suite [--judge claude|mock] [--styles a,b] [--out runs/]
     paint compare a.png b.png --scene scene.yaml [--judge claude]
     paint calibrate --ratings evals/calibration/ratings.json
+    paint play "a lighthouse at night with gulls" --styles screenprint,woodblock
+    paint play --surprise --setting coast
     paint serve --port 8000
 """
 from __future__ import annotations
@@ -120,6 +122,31 @@ def cmd_calibrate(a):
     return 0
 
 
+def cmd_play(a):
+    """Freestyle: a prompt (or --surprise) -> scene -> render in one or more styles."""
+    import yaml
+
+    from . import playground as pg
+    from .render import render_to_file
+    from .scene.spec import load_scene
+
+    if a.surprise or not a.prompt:
+        scene, source = pg.surprise(a.seed, a.setting), "surprise"
+    else:
+        use = {"auto": None, "claude": True, "offline": False}[a.writer]
+        scene, source = pg.from_prompt(" ".join(a.prompt), seed=a.seed or 0, use_claude=use, model=a.model)
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    stem = "".join(ch if ch.isalnum() else "_" for ch in scene["title"].lower())[:40].strip("_") or "scene"
+    (out / f"{stem}.yaml").write_text(yaml.safe_dump(scene, sort_keys=False))
+    print(f"scene ({source}): {out / (stem + '.yaml')}  objects: {', '.join(o['kind'] for o in scene['objects'])}")
+    sc = load_scene(scene)
+    for style in a.styles.split(","):
+        rec = render_to_file(sc, style.strip(), None, out, name=f"{stem}__{style.strip()}", timeout=a.timeout, raise_on_error=False)
+        print(f"  {style}: {rec.png if rec.ok else 'FAILED ' + (rec.error or '').splitlines()[0]}" + (f" ({rec.seconds:.1f}s)" if rec.ok else ""))
+    return 0
+
+
 def cmd_serve(a):
     from .site.server import serve
 
@@ -198,6 +225,18 @@ def main(argv=None):
     cal.add_argument("--init", action="store_true", help="render a ~20-image calibration set with empty ratings")
     cal.add_argument("-n", type=int, default=20)
     cal.set_defaults(fn=cmd_calibrate)
+
+    pl = sub.add_parser("play", help="freestyle: describe a scene (or --surprise) and render it")
+    pl.add_argument("prompt", nargs="*")
+    pl.add_argument("--surprise", action="store_true")
+    pl.add_argument("--setting", default=None, help="surprise setting: coast, countryside, mountains, night, still life, garden, rain")
+    pl.add_argument("--styles", default="screenprint,sumie,impasto")
+    pl.add_argument("--seed", type=int, default=None)
+    pl.add_argument("--writer", default="auto", choices=["auto", "claude", "offline"], help="who turns the prompt into a scene")
+    pl.add_argument("--model", default=None)
+    pl.add_argument("--out", default="out/play")
+    pl.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_S)
+    pl.set_defaults(fn=cmd_play)
 
     sv = sub.add_parser("serve", help="local web studio")
     sv.add_argument("--host", default="127.0.0.1")

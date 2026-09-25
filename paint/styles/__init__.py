@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import importlib
 
-STYLES = ("screenprint", "sumie", "impasto")
+STYLES = ("screenprint", "sumie", "impasto", "pointillism", "woodblock", "linocut", "stainedglass")
 
 
 def get_style(name: str):
-    name = {"sumi-e": "sumie", "sumi_e": "sumie"}.get(name, name)
+    name = {"sumi-e": "sumie", "sumi_e": "sumie", "stained-glass": "stainedglass", "stained_glass": "stainedglass"}.get(name, name)
     if name not in STYLES:
         raise KeyError(f"unknown style {name!r}; available: {', '.join(STYLES)}")
     return importlib.import_module(f"{__name__}.{name}")

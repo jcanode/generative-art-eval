@@ -82,6 +82,31 @@ the treatment.
 `paint render ... -p knob=value` overrides any knob. `DEFAULTS` and `KNOBS` in
 each module list them with ranges.
 
+## Playground (freestyle)
+
+The **Playground** tab in `paint serve` is the quickest way to play:
+
+- **Describe a scene** ("a lighthouse on a cliff at night with gulls"). With an API key, Claude writes the
+  scene spec as structured output against the scene schema. Without a key, an offline keyword parser maps
+  words to object kinds, counts ("three apples"), variants ("fishing boat"), mood ("dusk", "rain") and
+  colour words.
+- **Surprise me**: a random but composed scene, optionally from a chosen setting (coast, countryside,
+  mountains, night, still life, garden, rain).
+- **Drag-and-drop layout**: move objects and the horizon, add/duplicate/delete objects, and edit size,
+  count and variant, the palette, mood, light direction, canvas shape and seed.
+- **Live preview** in any number of styles side by side, at reduced size (layout is resolution
+  independent), then **Render full size**. **Save scene** writes `scenes/playground/<name>.yaml`, which then
+  appears in the Render and Loop tabs.
+
+The layout engine (`paint/playground.py`) sets the horizon and depth, puts the focal subject on a third,
+sizes by perspective, keeps tall objects on the canvas and the sun or moon clear of them, gives
+lighthouses a cliff, and keeps indoor and outdoor scenes separate. The same thing from the command line:
+
+```
+paint play "two sailboats at sunset with gulls" --styles screenprint,woodblock,impasto
+paint play --surprise --setting night
+```
+
 ## The loop
 
 `paint loop` renders, runs the technical checks, then a critic looks at the PNG

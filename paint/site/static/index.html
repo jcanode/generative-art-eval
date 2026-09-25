@@ -46,12 +46,26 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{text-align:right;fon
 .banner{border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13px}
 .drop{border:2px dashed var(--line);border-radius:10px;padding:24px;text-align:center;color:var(--muted)}.drop.over{border-color:var(--accent);color:var(--fg)}
 .empty{color:var(--muted);font-size:13px;padding:12px 0}
+.play-grid{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:16px}.play-grid>*{min-width:0}
+@media (max-width:1180px){.play-grid{grid-template-columns:300px minmax(0,1fr)}.play-grid>:last-child{grid-column:1/-1}}
+@media (max-width:760px){.play-grid{grid-template-columns:minmax(0,1fr)}}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#p-svg{width:100%;height:auto;display:block;border-radius:6px;border:1px solid var(--line);touch-action:none;user-select:none}
+#p-svg .obj{cursor:grab}#p-svg .obj.sel rect{stroke:var(--accent);stroke-width:3}#p-svg text{font-family:ui-sans-serif,system-ui;pointer-events:none}
+.swatches{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.swatches input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
+.inspector{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}.inspector .row2 label{margin-top:4px}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.results figure{margin:0}.results img{width:100%;border-radius:4px;border:1px solid var(--line);display:block;cursor:zoom-in}
+.results figcaption{font-size:12px;color:var(--muted);margin-top:3px}.stylechip{cursor:pointer;user-select:none}
+.stylechip input{margin-right:4px}
+
 </style>
 </head>
 <body>
 <header>
   <h1>Paint <span>Studio</span></h1>
   <nav role="tablist">
+    <button role="tab" data-tab="playground">Playground</button>
     <button role="tab" data-tab="studio" aria-selected="true">Render</button>
     <button role="tab" data-tab="loop">Loop</button>
     <button role="tab" data-tab="evals">Evals</button>
@@ -62,6 +76,48 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{text-align:right;fon
   <button class="keypill" id="keypill" title="API key status">no API key</button>
 </header>
 <main>
+
+
+<section id="playground">
+  <div class="play-grid">
+    <div class="panel">
+      <h2>Start from an idea</h2>
+      <label for="p-text">Describe a scene</label>
+      <textarea id="p-text" style="min-height:70px;font:inherit" placeholder="a lighthouse on a cliff at night with gulls"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="p-prompt">Make scene</button>
+        <label class="hint" style="margin:0"><input type="checkbox" id="p-claude"> Claude writes it</label></div>
+      <p class="hint" id="p-source"></p>
+      <div class="row"><button class="btn secondary" id="p-surprise">Surprise me</button><select id="p-setting" style="width:auto"><option value="">any setting</option></select></div>
+      <h3>Scene</h3>
+      <label for="p-title">Title</label><input id="p-title" type="text">
+      <div class="row2"><div><label for="p-canvas">Canvas</label><select id="p-canvas"><option value="1024x768">landscape 1024×768</option><option value="768x1024">portrait 768×1024</option><option value="900x900">square 900×900</option><option value="1280x640">wide 1280×640</option></select></div>
+        <div><label for="p-seed">Seed</label><div class="row" style="flex-wrap:nowrap"><input id="p-seed" type="number" value="0" style="flex:1 1 auto;min-width:0"><button class="btn secondary" id="p-dice" title="new seed" aria-label="new seed" style="padding:8px 10px">⚄</button></div></div></div>
+      <label for="p-horizon">Horizon <output id="p-horizon-o"></output></label><input id="p-horizon" type="range" min="0.3" max="0.85" step="0.01">
+      <label for="p-az">Light from <output id="p-az-o"></output></label><input id="p-az" type="range" min="0" max="359" step="1">
+      <div class="row2"><div><label for="p-mood">Mood</label><select id="p-mood"><option>warm</option><option>cool</option><option>night</option><option>neutral</option></select></div>
+        <div><label for="p-palpreset">Palette</label><select id="p-palpreset"><option value="">custom</option></select></div></div>
+      <div class="swatches" id="p-pal"></div>
+    </div>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Layout</h2>
+        <div class="row"><select id="p-addkind" style="width:auto" aria-label="object kind"></select><button class="btn secondary" id="p-add">Add</button></div></div>
+      <p class="hint">Drag objects; drag the dashed line to move the horizon. Boxes show roughly how much canvas each object takes.</p>
+      <svg id="p-svg" role="img" aria-label="scene layout editor"></svg>
+      <div id="p-inspector" class="inspector hint">Select an object to edit it.</div>
+      <details style="margin-top:8px"><summary class="hint">scene YAML / JSON</summary><textarea id="p-json" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:6px"><button class="btn secondary" id="p-applyjson">Apply edits</button></div></details>
+    </div>
+    <div class="panel">
+      <h2>Render</h2>
+      <div id="p-styles" class="chips"></div>
+      <div class="row" style="margin-top:10px"><label class="hint" style="margin:0"><input type="checkbox" id="p-live" checked> live preview</label>
+        <button class="btn" id="p-full">Render full size</button></div>
+      <div class="row" style="margin-top:8px"><input id="p-savename" type="text" placeholder="name" style="width:140px"><button class="btn secondary" id="p-save">Save scene</button></div>
+      <p class="hint" id="p-status"></p>
+      <div id="p-results" class="results"></div>
+    </div>
+  </div>
+</section>
 
 <section id="studio" class="active">
   <div class="cols">
@@ -191,6 +247,7 @@ function showTab(t) {
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
   document.querySelectorAll('main section').forEach(s => s.classList.toggle('active', s.id === t));
   try { localStorage.setItem('tab', t); } catch (e) {}
+  if (t === 'playground' && window.playInit) window.playInit();
   if (t === 'evals') loadRuns(); if (t === 'loop') loadLoops(); if (t === 'calibration') loadCal(); if (t === 'judge') loadGallery();
 }
 $('#keypill').onclick = () => showTab('settings');
@@ -397,5 +454,6 @@ $('#s-test').onclick = async () => { $('#s-status').textContent = 'testing…'; 
 
 init().catch(e => { document.querySelector('main').innerHTML = `<p class="bad">Could not reach the studio server: ${esc(e.message)}</p>`; });
 </script>
+<script src="/static/playground.js"></script>
 </body>
 </html>

@@ -76,6 +76,53 @@ is where; styles vary the *treatment*.
 * **Relief:** strokes have ridges; a fake emboss from the stroke height map
   gives the paint body.
 
+## Pointillism (in the manner of 1880s divisionism)
+
+* **Dots, not strokes.** The image is built from small round or slightly oval
+  dabs of *unmixed* colour. Colour mixing happens in the eye: a green area is
+  blue and yellow dots side by side, a shadow is complementary dots mixed in.
+* **Dot size** is roughly constant (it may be slightly larger in the foreground)
+  and dots overlap little. Coverage is dense, with a little ground showing.
+* **Halos:** where a light form meets a dark one, the light side gets lighter
+  and the dark side darker (irradiation), with complementary dots at the seam.
+* **Calm geometry:** clear, still silhouettes, a stable composition, soft
+  outlines made of dot density rather than drawn lines.
+
+## Woodblock print (moku-hanga manner)
+
+* **Key block:** a black (or dark indigo) outline plate with confident,
+  tapering carved lines, drawn *before* colour.
+* **Colour blocks:** a handful of flat colours printed inside the key lines,
+  with slight misregistration and no halftone.
+* **Bokashi:** graded wiping on some blocks. Skies darken toward the top, and
+  water deepens toward the horizon or the viewer. These are the only gradients.
+* **Surface:** wood grain in large flat areas, baren (rubbing-pad) texture,
+  and soft pigment edges. Paper is warm and shows through.
+* **Stylised nature:** waves, clouds and rain are drawn as patterns (scalloped
+  crests, banded clouds, straight rain lines).
+
+## Linocut (relief print)
+
+* **One or two inks** on paper; the carved-away areas are the paper.
+* **Gouge marks** carry all tone: parallel or contour-following cuts, denser
+  in light areas, sparser in darks. There is no halftone and no gradients.
+* **Bold graphic contrast:** big black shapes, white carved highlights, and a
+  visible cutting direction that follows the form.
+* **Imperfection:** uneven ink, slightly ragged cut edges, and chips at the
+  plate's border.
+
+## Stained glass
+
+* **Lead came:** every shape is divided into glass pieces by thick,
+  dark, slightly irregular lead lines. Large regions are split into several
+  panes, and panes are plausible to cut (no hairline slivers).
+* **Glass:** each pane is one saturated colour with internal variation
+  (seeds, streaks, thickness mottling) and a glow as if backlit.
+* **Painted detail:** fine dark lines painted on panes (faces, leaves, window
+  frames), used sparingly.
+* **Structure:** the window reads as a window, with a frame or border and
+  optionally saddle bars.
+
 ## Critique vocabulary
 
 When critiquing a render (generator loop, not the judge), use these headings:

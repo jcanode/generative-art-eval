@@ -140,7 +140,8 @@ def api_state(_):
         styles[s] = {"defaults": m.DEFAULTS, "knobs": {k: {"min": lo, "max": hi, "about": d} for k, (lo, hi, d) in m.KNOBS.items()},
                      "rules": getattr(m, "RULES", {})}
     scenes = []
-    for folder, split in ((ROOT / "evals" / "suite", "suite"), (ROOT / "evals" / "holdout", "holdout"), (ROOT / "scenes", "scenes")):
+    for folder, split in ((ROOT / "evals" / "suite", "suite"), (ROOT / "evals" / "holdout", "holdout"), (ROOT / "scenes", "scenes"),
+                          (ROOT / "scenes" / "playground", "playground")):
         for p in sorted(folder.glob("*.y*ml")) + sorted(folder.glob("*.json")):
             scenes.append({"path": str(p.relative_to(ROOT)), "name": p.stem, "split": split, "text": p.read_text()})
     return {"key": {"set": KEYS.get() is not None, "masked": KEYS.masked(), "source": KEYS.source},
@@ -439,13 +440,111 @@ def api_calibration_run(body):
     return {"job": JOBS.start("calibration", job)}
 
 
+# ---------------------------------------------------------------------------
+# Playground
+# ---------------------------------------------------------------------------
+
+PLAY = RUNS / "playground"
+
+
+def api_play_meta(_):
+    from .. import playground as pg
+    from ..scene.shapes import KINDS
+
+    centred = {"sun", "moon", "cloud", "bird", "mountain", "stars", "rain"}
+    regions = {"sea", "field", "table", "river", "hills"}
+    return {"kinds": sorted(KINDS), "reach": pg.REACH, "centred": sorted(centred), "regions": sorted(regions),
+            "settings": sorted(pg.SETTINGS), "palettes": pg.PALETTES,
+            "variants": {"boat": ["sail", "fishing", "row"], "moon": ["crescent", "full"], "bird": ["flying", "perched"],
+                         "fruit": ["apple", "pear", "orange"]}}
+
+
+def api_play_surprise(body):
+    from .. import playground as pg
+
+    seed = body.get("seed")
+    return {"scene": pg.surprise(int(seed) if seed not in (None, "") else None, body.get("setting") or None,
+                                 int(body.get("width", 1024)), int(body.get("height", 768)))}
+
+
+def api_play_prompt(body):
+    from .. import playground as pg
+
+    text = (body.get("text") or "").strip()
+    if not text:
+        raise ValueError("describe a scene first")
+    use_claude = body.get("use_claude")
+    if use_claude and not KEYS.get():
+        raise ValueError("the Claude scene writer needs an API key (Settings)")
+    scene, source = pg.from_prompt(text, api_key=KEYS.get(), model=SETTINGS["model"], seed=int(body.get("seed") or 0),
+                                   use_claude=(bool(KEYS.get()) if use_claude is None else bool(use_claude)),
+                                   width=int(body.get("width", 1024)), height=int(body.get("height", 768)))
+    return {"scene": scene, "source": source}
+
+
+def _play_render_one(scene_dict, style, seed, preview, params):
+    from .. import playground as pg
+    from ..render import render_to_file
+    from ..scene.spec import load_scene
+
+    d = pg.preview_scene(scene_dict, 360) if preview else scene_dict
+    scene = load_scene(d)
+    out = PLAY / ("preview" if preview else time.strftime("%Y%m%d"))
+    name = f"{style}__{uuid.uuid4().hex[:8]}"
+    rec = render_to_file(scene, style, seed, out, params or None, name=name, timeout=60 if preview else 300,
+                         raise_on_error=False)
+    return {"style": style, "ok": rec.ok, "error": (rec.error or "").splitlines()[0] if rec.error else None,
+            "image": _url_for(Path(rec.png)) if rec.ok else None, "seconds": rec.seconds,
+            "path": str(Path(rec.png).relative_to(ROOT)) if rec.ok else None}
+
+
+def api_play_render(body):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from ..scene.spec import load_scene
+    from ..styles import available
+
+    scene = body.get("scene") or {}
+    load_scene(scene)  # validate early: unknown kinds etc. become a 400
+    styles = [s for s in (body.get("styles") or ["screenprint"]) if s in available()][:8]
+    seed = int(body["seed"]) if body.get("seed") not in (None, "") else int(scene.get("seed", 0))
+    preview = bool(body.get("preview", False))
+    if preview:  # previews are disposable: keep the folder small
+        old = sorted((PLAY / "preview").glob("*.png"), key=lambda p: p.stat().st_mtime) if (PLAY / "preview").exists() else []
+        for p in old[:-80]:
+            p.unlink(missing_ok=True)
+            p.with_suffix(".json").unlink(missing_ok=True)
+    workers = max(1, min(len(styles), int(os.environ.get("PAINT_WORKERS", os.cpu_count() or 2))))
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        results = list(ex.map(lambda s: _play_render_one(scene, s, seed, preview, (body.get("params") or {}).get(s)), styles))
+    return {"results": results, "preview": preview}
+
+
+def api_play_save(body):
+    import re
+
+    import yaml
+
+    from ..scene.spec import load_scene
+
+    scene = body["scene"]
+    load_scene(scene)
+    name = re.sub(r"[^a-z0-9_-]+", "_", (body.get("name") or scene.get("title") or "scene").lower()).strip("_")[:50] or "scene"
+    folder = ROOT / "scenes" / "playground"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"{name}.yaml"
+    path.write_text(yaml.safe_dump(scene, sort_keys=False))
+    return {"path": str(path.relative_to(ROOT))}
+
+
 GET_ROUTES = {"/api/state": api_state, "/api/runs": api_runs, "/api/calibration": api_calibration,
-              "/api/uploads": api_uploads, "/api/loops": api_loops}
+              "/api/uploads": api_uploads, "/api/loops": api_loops, "/api/play/meta": api_play_meta}
 POST_ROUTES = {"/api/key": api_key, "/api/key/test": api_key_test, "/api/render": api_render,
                "/api/judge": api_judge, "/api/compare": api_compare, "/api/upload": api_upload,
                "/api/loop": api_loop_start, "/api/loop/critique": api_loop_critique, "/api/eval": api_eval,
                "/api/calibration/rate": api_calibration_rate, "/api/calibration/init": api_calibration_init,
-               "/api/calibration/run": api_calibration_run}
+               "/api/calibration/run": api_calibration_run, "/api/play/surprise": api_play_surprise,
+               "/api/play/prompt": api_play_prompt, "/api/play/render": api_play_render, "/api/play/save": api_play_save}
 
 
 class Handler(BaseHTTPRequestHandler):
